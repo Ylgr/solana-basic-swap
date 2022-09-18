@@ -21,7 +21,7 @@ import MyWallet from "./MyWallet";
 
 function App() {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  const network = WalletAdapterNetwork.Mainnet;
+  const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint
   const endpoint = React.useMemo(() => clusterApiUrl(network), [network]);
@@ -45,27 +45,13 @@ function App() {
       <WalletProvider wallets={wallets}>
         <div className="App">
           <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
             <p>
-              Edit <code>src/App.tsx</code> and save to reload.
+              MOVE swap
             </p>
-            <a
-              className="App-link"
-              href="https://reactjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn React
-            </a>
 
-            <a
-              className="App-link"
-              href="https://solana-labs.github.io/solana-web3.js/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Solana Web3 docs
-            </a>
+            <p>
+              Note: Using devnet instead of testnet because devnet for Program development, testnet for new protocol testing.
+            </p>
 
             <MyWallet />
           </header>
