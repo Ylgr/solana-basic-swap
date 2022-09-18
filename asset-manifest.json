@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/solana-basic-swap/static/css/main.a617e044.chunk.css",
+    "main.js": "/solana-basic-swap/static/js/main.839cbb39.chunk.js",
+    "main.js.map": "/solana-basic-swap/static/js/main.839cbb39.chunk.js.map",
+    "runtime-main.js": "/solana-basic-swap/static/js/runtime-main.a6f01d3e.js",
+    "runtime-main.js.map": "/solana-basic-swap/static/js/runtime-main.a6f01d3e.js.map",
+    "static/css/2.0acf608e.chunk.css": "/solana-basic-swap/static/css/2.0acf608e.chunk.css",
+    "static/js/2.98b09b19.chunk.js": "/solana-basic-swap/static/js/2.98b09b19.chunk.js",
+    "static/js/2.98b09b19.chunk.js.map": "/solana-basic-swap/static/js/2.98b09b19.chunk.js.map",
+    "static/js/3.7ab44b60.chunk.js": "/solana-basic-swap/static/js/3.7ab44b60.chunk.js",
+    "static/js/3.7ab44b60.chunk.js.map": "/solana-basic-swap/static/js/3.7ab44b60.chunk.js.map",
+    "index.html": "/solana-basic-swap/index.html",
+    "static/css/2.0acf608e.chunk.css.map": "/solana-basic-swap/static/css/2.0acf608e.chunk.css.map",
+    "static/css/main.a617e044.chunk.css.map": "/solana-basic-swap/static/css/main.a617e044.chunk.css.map",
+    "static/js/2.98b09b19.chunk.js.LICENSE.txt": "/solana-basic-swap/static/js/2.98b09b19.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.a6f01d3e.js",
+    "static/css/2.0acf608e.chunk.css",
+    "static/js/2.98b09b19.chunk.js",
+    "static/css/main.a617e044.chunk.css",
+    "static/js/main.839cbb39.chunk.js"
+  ]
+}
