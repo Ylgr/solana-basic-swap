@@ -3,7 +3,7 @@ use anchor_lang::solana_program::{program::invoke, system_instruction::transfer}
 use anchor_spl::token::{self, SetAuthority, Token, TokenAccount, Transfer};
 use spl_token::instruction::AuthorityType;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("7GFXgchPpNAaysNviqMjDFD9kE4YbW1DAEaVCMoRnTCU");
 
 #[program]
 pub mod basic_swap {
