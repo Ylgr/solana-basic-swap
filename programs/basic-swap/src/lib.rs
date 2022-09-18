@@ -13,8 +13,9 @@ pub mod basic_swap {
 
     pub fn create_pool(ctx: Context<CreatePool>, token: Pubkey) -> Result<()> {
         let pool = &mut ctx.accounts.pool;
-        pool.token = token;
+        pool.token_account = token;
         pool.rate = 10;
+        pool.initializer = ctx.accounts.signer.key();
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[SWAP_PDA_SEED], ctx.program_id);
         token::set_authority(ctx.accounts.into_set_authority_context(), AuthorityType::AccountOwner, Some(pda))?;
@@ -27,12 +28,12 @@ pub mod basic_swap {
 
         invoke(
             &transfer(
-                ctx.accounts.taker.to_account_info().key,
+                ctx.accounts.signer.to_account_info().key,
                 ctx.accounts.initializer_receive_wallet_account.to_account_info().key,
-                ctx.accounts.escrow_account.taker_amount,
+                amount,
             ),
             &[
-                ctx.accounts.taker.to_account_info(),
+                ctx.accounts.signer.to_account_info(),
                 ctx.accounts.initializer_receive_wallet_account.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
             ],
@@ -81,13 +82,17 @@ impl<'info> CreatePool<'info> {
 #[derive(Accounts)]
 #[instruction(amount:u64)]
 pub struct Swap<'info> {
-    #[account(mut)]
+    #[account(
+        mut
+    )]
     pub pool: Account<'info,Pool>,
     #[account(mut)]
     pub taker_receive_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub pda_deposit_token_account: Account<'info, TokenAccount>,
     pub pda_account: AccountInfo<'info>,
+    #[account(mut)]
+    pub initializer_receive_wallet_account: AccountInfo<'info>,
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info,System>,
@@ -108,6 +113,7 @@ impl<'info> Swap<'info> {
 
 #[account]
 pub struct Pool {
-    pub token: Pubkey,
+    pub initializer: Pubkey,
+    pub token_account: Pubkey,
     pub rate: u8,
 }
