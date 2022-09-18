@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Program, AnchorProvider, Provider } from "@project-serum/anchor";
+import {Program, AnchorProvider, Provider, BN} from "@project-serum/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
 import { BasicSwap } from "../target/types/basic_swap";
@@ -35,10 +35,10 @@ describe("basic-swap", () => {
     return Promise.all(promises);
   }
 
-  let mintA = null;
-  let initializerTokenAccountA: PublicKey = null;
+  let mintMove = null;
+  let initializerTokenAccountMove: PublicKey = null;
   let initializer = null;
-  let takerTokenAccountA: PublicKey = null;
+  let takerTokenAccountMove: PublicKey = null;
   let taker = null;
   let pda: PublicKey = null;
 
@@ -46,44 +46,44 @@ describe("basic-swap", () => {
   const initializerAmount = 500;
 
   const poolAccount = anchor.web3.Keypair.generate();
-  const mintAuthority = anchor.web3.Keypair.generate();
+  const mintMoveuthority = anchor.web3.Keypair.generate();
 
   it("Should prepare success",async () => {
     [initializer, taker] = await createUsers(2);
-    mintA = await Token.createMint(
+    mintMove = await Token.createMint(
         provider.connection,
         initializer.key,
-        mintAuthority.publicKey,
+        mintMoveuthority.publicKey,
         null,
         0,
         TOKEN_PROGRAM_ID
     );
 
-    initializerTokenAccountA = await mintA.createAccount(
+    initializerTokenAccountMove = await mintMove.createAccount(
         provider.wallet.publicKey
     );
 
-    takerTokenAccountA = await mintA.createAccount(provider.wallet.publicKey);
+    takerTokenAccountMove = await mintMove.createAccount(provider.wallet.publicKey);
 
-    await mintA.mintTo(
-        initializerTokenAccountA,
-        mintAuthority.publicKey,
-        [mintAuthority],
+    await mintMove.mintTo(
+        initializerTokenAccountMove,
+        mintMoveuthority.publicKey,
+        [mintMoveuthority],
         initializerAmount
     );
 
-    let _initializerTokenAccountA = await mintA.getAccountInfo(
-        initializerTokenAccountA
+    let _initializerTokenAccountMove = await mintMove.getAccountInfo(
+        initializerTokenAccountMove
     );
 
-    assert.ok(_initializerTokenAccountA.amount.toNumber() == initializerAmount);
+    assert.ok(_initializerTokenAccountMove.amount.toNumber() == initializerAmount);
   })
 
   it("Should be initialized!", async () => {
     await program.rpc.createPool(
         {
           accounts: {
-            initializerDepositTokenAccount: initializerTokenAccountA,
+            initializerDepositTokenAccount: initializerTokenAccountMove,
             initializerReceiveWalletAccount: initializer.wallet.publicKey,
             pool: poolAccount.publicKey,
             systemProgram: SystemProgram.programId,
@@ -102,18 +102,78 @@ describe("basic-swap", () => {
 
     pda = _pda;
 
-    let _initializerTokenAccountA = await mintA.getAccountInfo(
-        initializerTokenAccountA
+    let _initializerTokenAccountMove = await mintMove.getAccountInfo(
+        initializerTokenAccountMove
     );
 
     let _poolAccount = await program.account.pool.fetch(poolAccount.publicKey);
 
     // Check that the new owner is the PDA.
-    assert.ok(_initializerTokenAccountA.owner.equals(pda));
+    assert.ok(_initializerTokenAccountMove.owner.equals(pda));
 
   });
 
   it("Swap", async () => {
+    const _initializerSolAccountBefore = await provider.connection.getBalance(initializer.wallet.publicKey)
 
+    let _takerTokenAccountMoveBefore = await mintMove.getAccountInfo(takerTokenAccountMove);
+    assert.equal(_takerTokenAccountMoveBefore.amount.toNumber(), 0);
+    let _initializerTokenAccountMoveBefore = await mintMove.getAccountInfo(initializerTokenAccountMove);
+    assert.equal(_initializerTokenAccountMoveBefore.amount.toNumber(), 500);
+
+    await program.rpc.swap(
+        new BN(10),
+        {
+          accounts: {
+            takerReceiveTokenAccount: takerTokenAccountMove,
+            pdaDepositTokenAccount: initializerTokenAccountMove,
+            initializerReceiveWalletAccount: initializer.wallet.publicKey,
+            pool: poolAccount.publicKey,
+            pdaAccount: pda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            signer: provider.wallet.publicKey
+          }
+        }
+    )
+    const _initializerSolAccountAfter = await provider.connection.getBalance(initializer.wallet.publicKey)
+
+    let _takerTokenAccountMoveAfter = await mintMove.getAccountInfo(takerTokenAccountMove);
+    let _initializerTokenAccountMoveAfter = await mintMove.getAccountInfo(
+        initializerTokenAccountMove
+    );
+
+    // Check that the initializer gets back ownership of their token account.
+    assert.ok(_takerTokenAccountMoveAfter.owner.equals(provider.wallet.publicKey));
+
+    assert.equal(_takerTokenAccountMoveAfter.amount.toNumber(), 100);
+    assert.equal(_initializerTokenAccountMoveAfter.amount.toNumber(), 400);
+    assert.equal(_initializerSolAccountAfter - _initializerSolAccountBefore, 10);
+
+    await program.rpc.swap(
+        new BN(11),
+        {
+          accounts: {
+            takerReceiveTokenAccount: takerTokenAccountMove,
+            pdaDepositTokenAccount: initializerTokenAccountMove,
+            initializerReceiveWalletAccount: initializer.wallet.publicKey,
+            pool: poolAccount.publicKey,
+            pdaAccount: pda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            signer: provider.wallet.publicKey
+          }
+        }
+    )
+    const _initializerSolAccountFinally = await provider.connection.getBalance(initializer.wallet.publicKey)
+
+    let _takerTokenAccountMoveFinally = await mintMove.getAccountInfo(takerTokenAccountMove);
+    let _initializerTokenAccountMoveFinally = await mintMove.getAccountInfo(
+        initializerTokenAccountMove
+    );
+
+    assert.equal(_takerTokenAccountMoveFinally.amount.toNumber(), 210);
+    assert.equal(_initializerTokenAccountMoveFinally.amount.toNumber(), 290);
+    assert.equal(_initializerSolAccountFinally - _initializerSolAccountBefore, 21);
   })
 });
