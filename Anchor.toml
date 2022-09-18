@@ -8,8 +8,9 @@ basic_swap = "7GFXgchPpNAaysNviqMjDFD9kE4YbW1DAEaVCMoRnTCU"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/home/ylgr/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+copy-idl = "mkdir -p app/src/idl && cp target/idl/basic_swap.json app/src/idl/basic_swap.json"
