@@ -11,9 +11,8 @@ pub mod basic_swap {
 
     const SWAP_PDA_SEED: &[u8] = b"swap";
 
-    pub fn create_pool(ctx: Context<CreatePool>, token: Pubkey) -> Result<()> {
+    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
         let pool = &mut ctx.accounts.pool;
-        pool.token_account = token;
         pool.rate = 10;
         pool.initializer = ctx.accounts.signer.key();
 
@@ -51,7 +50,6 @@ pub mod basic_swap {
 }
 
 #[derive(Accounts)]
-#[instruction(token:Pubkey)]
 pub struct CreatePool<'info> {
     #[account(
         init,
@@ -60,8 +58,9 @@ pub struct CreatePool<'info> {
     )]
     pub pool: Account<'info,Pool>,
     #[account(mut)]
-    pub pda_deposit_token_account: Account<'info, TokenAccount>,
-    pub pda_account: AccountInfo<'info>,
+    pub initializer_deposit_token_account: Account<'info, TokenAccount>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    pub initializer_receive_wallet_account: AccountInfo<'info>,
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info,System>,
@@ -71,8 +70,8 @@ pub struct CreatePool<'info> {
 impl<'info> CreatePool<'info> {
     fn into_set_authority_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
         let cpi_accounts = SetAuthority {
-            account_or_mint: self.pda_deposit_token_account.to_account_info().clone(),
-            current_authority: self.pda_account.clone(),
+            account_or_mint: self.initializer_deposit_token_account.to_account_info().clone(),
+            current_authority: self.signer.to_account_info().clone(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -90,8 +89,10 @@ pub struct Swap<'info> {
     pub taker_receive_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub pda_deposit_token_account: Account<'info, TokenAccount>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pub pda_account: AccountInfo<'info>,
     #[account(mut)]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pub initializer_receive_wallet_account: AccountInfo<'info>,
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -114,6 +115,5 @@ impl<'info> Swap<'info> {
 #[account]
 pub struct Pool {
     pub initializer: Pubkey,
-    pub token_account: Pubkey,
     pub rate: u8,
 }
