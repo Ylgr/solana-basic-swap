@@ -46,14 +46,14 @@ describe("basic-swap", () => {
   const initializerAmount = 500;
 
   const poolAccount = anchor.web3.Keypair.generate();
-  const mintMoveuthority = anchor.web3.Keypair.generate();
+  const mintMoveAuthority = anchor.web3.Keypair.generate();
 
   it("Should prepare success",async () => {
     [initializer, taker] = await createUsers(2);
     mintMove = await Token.createMint(
         provider.connection,
         initializer.key,
-        mintMoveuthority.publicKey,
+        mintMoveAuthority.publicKey,
         null,
         0,
         TOKEN_PROGRAM_ID
@@ -67,8 +67,8 @@ describe("basic-swap", () => {
 
     await mintMove.mintTo(
         initializerTokenAccountMove,
-        mintMoveuthority.publicKey,
-        [mintMoveuthority],
+        mintMoveAuthority.publicKey,
+        [mintMoveAuthority],
         initializerAmount
     );
 
@@ -110,7 +110,9 @@ describe("basic-swap", () => {
 
     // Check that the new owner is the PDA.
     assert.ok(_initializerTokenAccountMove.owner.equals(pda));
-
+    assert.equal(_poolAccount.initializer.toBase58(), initializer.wallet.publicKey.toBase58());
+    assert.equal(_poolAccount.tokenAccount.toBase58(), initializerTokenAccountMove.toBase58());
+    assert.equal(_poolAccount.rate, 10);
   });
 
   it("Swap", async () => {

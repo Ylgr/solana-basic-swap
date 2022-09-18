@@ -14,7 +14,8 @@ pub mod basic_swap {
     pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
         let pool = &mut ctx.accounts.pool;
         pool.rate = 10;
-        pool.initializer = ctx.accounts.signer.key();
+        pool.initializer = *ctx.accounts.initializer_receive_wallet_account.to_account_info().key;
+        pool.token_account = *ctx.accounts.initializer_deposit_token_account.to_account_info().key;
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[SWAP_PDA_SEED], ctx.program_id);
         token::set_authority(ctx.accounts.into_set_authority_context(), AuthorityType::AccountOwner, Some(pda))?;
@@ -54,7 +55,7 @@ pub struct CreatePool<'info> {
     #[account(
         init,
         payer=signer,
-        space= 8 + 32 + 1
+        space= 8 + 32 + 32 + 1
     )]
     pub pool: Account<'info,Pool>,
     #[account(mut)]
@@ -82,7 +83,10 @@ impl<'info> CreatePool<'info> {
 #[instruction(amount:u64)]
 pub struct Swap<'info> {
     #[account(
-        mut
+        mut,
+        constraint = amount <= signer.to_account_info().lamports(),
+        constraint = pool.initializer == *initializer_receive_wallet_account.to_account_info().key,
+        constraint = pool.token_account == *pda_deposit_token_account.to_account_info().key
     )]
     pub pool: Account<'info,Pool>,
     #[account(mut)]
@@ -115,5 +119,6 @@ impl<'info> Swap<'info> {
 #[account]
 pub struct Pool {
     pub initializer: Pubkey,
+    pub token_account: Pubkey,
     pub rate: u8,
 }
