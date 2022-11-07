@@ -60,8 +60,7 @@ pub struct CreatePool<'info> {
     pub pool: Account<'info,Pool>,
     #[account(mut)]
     pub initializer_deposit_token_account: Account<'info, TokenAccount>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub initializer_receive_wallet_account: AccountInfo<'info>,
+    pub initializer_receive_wallet_account: SystemAccount<'info>,
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info,System>,
@@ -93,11 +92,9 @@ pub struct Swap<'info> {
     pub taker_receive_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub pda_deposit_token_account: Account<'info, TokenAccount>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub pda_account: AccountInfo<'info>,
+    pub pda_account: SystemAccount<'info>,
     #[account(mut)]
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub initializer_receive_wallet_account: AccountInfo<'info>,
+    pub initializer_receive_wallet_account: SystemAccount<'info>,
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info,System>,
@@ -109,7 +106,7 @@ impl<'info> Swap<'info> {
         let cpi_accounts = Transfer {
             from: self.pda_deposit_token_account.to_account_info().clone(),
             to: self.taker_receive_token_account.to_account_info().clone(),
-            authority: self.pda_account.clone(),
+            authority: self.pda_account.to_account_info().clone(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
