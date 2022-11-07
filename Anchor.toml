@@ -8,7 +8,7 @@ basic_swap = "7GFXgchPpNAaysNviqMjDFD9kE4YbW1DAEaVCMoRnTCU"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "/home/ylgr/.config/solana/id.json"
 
 [scripts]

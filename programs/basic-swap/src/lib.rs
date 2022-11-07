@@ -82,7 +82,6 @@ impl<'info> CreatePool<'info> {
 #[instruction(amount:u64)]
 pub struct Swap<'info> {
     #[account(
-        mut,
         constraint = amount <= signer.to_account_info().lamports(),
         constraint = pool.initializer == *initializer_receive_wallet_account.to_account_info().key,
         constraint = pool.token_account == *pda_deposit_token_account.to_account_info().key
